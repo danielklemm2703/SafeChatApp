@@ -10,7 +10,7 @@ import com.google.common.collect.Sets;
 
 public class PhoneManager {
 
-	private final HashMap<String, HashSet<Session>> _phones;
+	private final HashMap<String, HashSet<Session>> _phoneMap;
 	private static final AtomicReference<PhoneManager> _singletonHolder = new AtomicReference<>();
 
 	public static final PhoneManager instance() {
@@ -21,16 +21,16 @@ public class PhoneManager {
 	}
 
 	public void registerPhoneNumber(String phoneNumber, Session session) {
-		if (!_phones.keySet().contains(phoneNumber)) {
+		if (!_phoneMap.keySet().contains(phoneNumber)) {
 			HashSet<Session> sessions = Sets.newHashSet(session);
-			_phones.put(phoneNumber, sessions);
+			_phoneMap.put(phoneNumber, sessions);
 		} else {
-			_phones.get(phoneNumber).add(session);
+			_phoneMap.get(phoneNumber).add(session);
 		}
-		System.err.println(_phones.get(phoneNumber));
+		System.err.println(_phoneMap.get(phoneNumber));
 	}
 
 	private PhoneManager() {
-		_phones = new HashMap<String, HashSet<Session>>();
+		_phoneMap = new HashMap<String, HashSet<Session>>();
 	}
 }
