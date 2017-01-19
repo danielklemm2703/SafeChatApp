@@ -3,7 +3,6 @@ package phone;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 
 import javaslang.control.Option;
 
@@ -30,17 +29,12 @@ public class PhoneManager {
         } else {
             _phoneMap.get(phoneNumber).add(session);
         }
-        System.err.println(_phoneMap.get(phoneNumber));
+        Option<Integer> of = Option.of(4);
+        System.err.println("Registered for number: " + phoneNumber);
+        System.err.println("Number of sessions: " + _phoneMap.get(phoneNumber).size());
     }
 
     private PhoneManager() {
-        Option.of(1)
-                .map(new Function<Integer, Integer>() {
-                    @Override
-                    public Integer apply(Integer t) {
-                        return t + 1;
-                    }
-                });
         _phoneMap = new HashMap<String, HashSet<Session>>();
     }
 }
