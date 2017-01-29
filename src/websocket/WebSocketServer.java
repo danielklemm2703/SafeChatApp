@@ -18,7 +18,7 @@ public class WebSocketServer {
 
     @OnClose
     public void close(Session session) {
-        SessionHandler.instance().removeSession(session);
+        SessionHandler.instance().removeSession(session.getId());
     }
 
     @OnMessage
@@ -26,14 +26,14 @@ public class WebSocketServer {
         // verification
         if (!SessionHandler.instance().verifiedSession(session)) {
             JsonObject error = JsonUtil.error("No verified Session");
-            SessionHandler.instance().sendToSession(session, error);
+            SessionHandler.instance().sendToSession(session.getId(), error);
             System.err.println("Could not verify Session: " + session.getId());
         }
         System.err.println("Verified Session: " + session.getId());
 
         // business logic execution
         System.err.println("Try to find suitable action");
-        WebSocketHandler.handle(json, session);
+        WebSocketHandler.handle(json, session.getId());
     }
 
     @OnError

@@ -8,7 +8,6 @@ import javaslang.control.Try;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
-import javax.websocket.Session;
 
 import phone.PhoneManager;
 import session.SessionHandler;
@@ -17,7 +16,7 @@ import util.Unit;
 
 public final class WebSocketHandler {
 
-    public static void handle(String json, Session session) {
+    public static void handle(String json, String sessionId) {
         // TODO better Json validation
         try (JsonReader reader = Json.createReader(new StringReader(json))) {
             JsonObject jsonMessage = reader.readObject();
@@ -26,7 +25,7 @@ public final class WebSocketHandler {
                 // business operation
                 System.err.println("Try to register phone number");
                 String phoneNumber = jsonMessage.getString("phoneNumber");
-                HashSet<Session> registeredSessions = PhoneManager.instance().registerPhoneNumber(phoneNumber, session);
+                HashSet<String> registeredSessions = PhoneManager.instance().registerPhoneNumber(phoneNumber, sessionId);
                 System.err.println("Registered phone number: " + phoneNumber);
                 System.err.println("It belongs currently to " + registeredSessions.size() + " session(s)");
 
@@ -39,6 +38,7 @@ public final class WebSocketHandler {
             if ("sendMessageToNumber".equals(jsonMessage.getString("action"))) {
                 // business operation
                 System.err.println("Try to send message to number");
+                System.err.println(json);
             }
         }
     }

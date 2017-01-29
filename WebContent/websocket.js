@@ -44,21 +44,23 @@ function registerPhoneOnServer(phone) {
 }
 
 function sendMessageToNumber() {
-	var numberToSend = document.getElementById('numberToSend').value;
+	var senderNumber = document.getElementById('phoneNumberText').value;
+	var receiverNumber = document.getElementById('numberToSend').value;
 	var message = document.getElementById('message').value;
 	document.getElementById('sendStatus').style.visibility = 'visible';
-	if (numberToSend == "" || message == "") {
-		document.getElementById('sendStatus').innerHTML = "No number or no message";
+	if (receiverNumber == "" || message == "" || senderNumber =="") {
+		document.getElementById('sendStatus').innerHTML = "No sender, receiver or message";
 	} else {
 		document.getElementById('sendStatus').innerHTML = "Sending message...";
-		sendMessageToSocket(numberToSend, message);
+		sendMessageToSocket(senderNumber,receiverNumber, message);
 	}
 }
 
-function sendMessageToSocket(numberToSend, messageToSend) {
+function sendMessageToSocket(senderNumber,receiverNumber, messageToSend) {
 	var action = {
 		action : "sendMessageToNumber",
-		phoneNumber : numberToSend,
+		receiver: receiverNumber,
+		sender : senderNumber,
 		message : messageToSend
 	};
 	socket.send(JSON.stringify(action));

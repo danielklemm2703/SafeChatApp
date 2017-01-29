@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javaslang.collection.HashMap;
 import javaslang.collection.HashSet;
+import javaslang.control.Option;
 import javaslang.control.Try;
 
 import javax.json.JsonObject;
@@ -34,21 +35,24 @@ public class SessionHandler {
         _registeredSessions = _registeredSessions.put(session.getId(), session);
     }
 
-    public void removeSession(Session session) {
-        System.out.println("removeSession: " + session.getId());
-        // TODO must notify phone manager
-        _registeredSessions = _registeredSessions.remove(session.getId());
+    public void removeSession(String sessionId) {
+        System.out.println("removeSession: " + sessionId);
+        _registeredSessions = _registeredSessions.remove(sessionId);
     }
 
-    public Try<Unit> sendToSession(Session session, JsonObject json) {
+    public Try<Unit> sendToSession(String sessionId, JsonObject json) {
         try {
-            session.getBasicRemote().sendText(json.toString());
-            System.err.println("Successfully sent to session " + session.getId());
-            return Try.success(Unit.VALUE);
+            Option<Session> registeredSession = _registeredSessions.get(sessionId);
+            if (registeredSession.isDefined()) {
+                registeredSession.get().getBasicRemote().sendText(json.toString());
+                System.err.println("Successfully sent to session " + sessionId);
+                return Try.success(Unit.VALUE);
+            }
+            return Try.failure(new IllegalStateException("Session " + sessionId + " not found"));
         } catch (IllegalStateException e1) {
             if (e1.getMessage().startsWith("The connection has been closed")) {
                 System.err.println("Removed this outdated session");
-                removeSession(session);
+                removeSession(sessionId);
                 return Try.success(Unit.VALUE);
             }
             return Try.failure(e1);
@@ -57,7 +61,7 @@ public class SessionHandler {
         }
     }
 
-    public Try<Unit> sendToSessions(HashSet<Session> registeredSessions, JsonObject json) {
+    public Try<Unit> sendToSessions(HashSet<String> registeredSessions, JsonObject json) {
         System.err.println("Try sending to multiple sessions (#" + registeredSessions.size() + ")");
         HashSet<Try<Unit>> failures = registeredSessions
                 .map(t -> sendToSession(t, json))

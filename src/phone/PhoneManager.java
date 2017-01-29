@@ -6,11 +6,10 @@ import javaslang.collection.HashMap;
 import javaslang.collection.HashSet;
 import javaslang.control.Option;
 
-import javax.websocket.Session;
-
 public class PhoneManager {
 
     private static final AtomicReference<PhoneManager> _singletonHolder = new AtomicReference<PhoneManager>();
+
     public static final PhoneManager instance() {
         if (_singletonHolder.get() == null) {
             _singletonHolder.set(new PhoneManager());
@@ -21,30 +20,28 @@ public class PhoneManager {
     /**
      * maps phone number to session id's
      */
-    private HashMap<String, HashSet<Session>> _phoneMap;
+    private HashMap<String, HashSet<String>> _phoneMap;
 
     private PhoneManager() {
-        _phoneMap = HashMap.<String, HashSet<Session>> empty();
+        _phoneMap = HashMap.<String, HashSet<String>> empty();
     }
 
     /**
-     * registers a number to a session, returns all sessions that belong to a given number
+     * registers a number to a sessionId, returns all sessionIds that belong to a given number
      * 
      * @param phoneNumber
-     * @param session
-     * @return a set of registered sessions to a single number
+     * @param sessionId
+     * @return a set of registered sessionIds to a single number
      */
-    public HashSet<Session> registerPhoneNumber(String phoneNumber, Session session) {
+    public HashSet<String> registerPhoneNumber(String phoneNumber, String sessionId) {
         // TODO what happens if the incoming session already has a phone number registered?
-        if (!_phoneMap.keySet().contains(phoneNumber)) {
-            HashSet<Session> sessions = HashSet.of(session);
-            _phoneMap = _phoneMap.put(phoneNumber, sessions);
-        } else {
-            HashSet<Session> sessions = _phoneMap.get(phoneNumber).get().add(session);
-            _phoneMap = _phoneMap.put(phoneNumber, sessions);
+        HashSet<String> sessionIds = HashSet.of(sessionId);
+        if (_phoneMap.keySet().contains(phoneNumber)) {
+            sessionIds = _phoneMap.get(phoneNumber).get().add(sessionId);
         }
+        _phoneMap = _phoneMap.put(phoneNumber, sessionIds);
         return _phoneMap.get(phoneNumber)
-                .orElse(Option.of(HashSet.<Session> empty()))
+                .orElse(Option.of(HashSet.<String> empty()))
                 .get();
     }
 }
