@@ -1,45 +1,46 @@
 package websocket;
 
-import java.io.StringReader;
-
 import javaslang.collection.HashSet;
 import javaslang.control.Try;
 
-import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonReader;
 
 import phone.PhoneManager;
 import session.SessionHandler;
 import util.JsonUtil;
 import util.Unit;
+import action.Action;
+import action.RegisterPhoneNumber;
+import action.SendMessage;
 
 public final class WebSocketHandler {
 
-    public static void handle(String json, String sessionId) {
-        // TODO better Json validation
-        try (JsonReader reader = Json.createReader(new StringReader(json))) {
-            JsonObject jsonMessage = reader.readObject();
-
-            if ("registerPhoneNumber".equals(jsonMessage.getString("action"))) {
-                // business operation
-                System.err.println("Try to register phone number");
-                String phoneNumber = jsonMessage.getString("phoneNumber");
-                HashSet<String> registeredSessions = PhoneManager.instance().registerPhoneNumber(phoneNumber, sessionId);
-                System.err.println("Registered phone number: " + phoneNumber);
-                System.err.println("It belongs currently to " + registeredSessions.size() + " session(s)");
-
-                // send response
-                JsonObject registeredPhoneNumber = JsonUtil.registeredPhoneNumber(phoneNumber);
-                // TODO try to recover
-                Try<Unit> sendToSessions = SessionHandler.instance().sendToSessions(registeredSessions, registeredPhoneNumber);
-            }
-
-            if ("sendMessageToNumber".equals(jsonMessage.getString("action"))) {
-                // business operation
-                System.err.println("Try to send message to number");
-                System.err.println(json);
-            }
+    public static Try<Unit> handle(Action action) {
+        if (action instanceof RegisterPhoneNumber) {
+            RegisterPhoneNumber registerPhoneAction = (RegisterPhoneNumber) action;
+            return registerPhoneNumber(registerPhoneAction);
         }
+        if (action instanceof SendMessage) {
+            SendMessage sendMessageAction = (SendMessage) action;
+            return sendMessage(sendMessageAction);
+        }
+        return Try.failure(new UnsupportedOperationException("Could not find action to execute"));
+    }
+
+    private static Try<Unit> sendMessage(SendMessage sendMessageAction) {
+        System.err.println("Try to send message to number");
+        // TODO progress and send message
+        return Try.success(Unit.VALUE);
+    }
+
+    private static Try<Unit> registerPhoneNumber(RegisterPhoneNumber registerPhoneAction) {
+        System.err.println("Try to register phone number");
+        HashSet<String> registeredSessions = PhoneManager.instance().registerPhoneNumber(registerPhoneAction.phoneNumber(), registerPhoneAction.sessionId());
+        System.err.println("Registered phone number: " + registerPhoneAction.phoneNumber());
+        System.err.println("It belongs currently to " + registeredSessions.size() + " session(s)");
+
+        // send response
+        JsonObject registeredPhoneNumber = JsonUtil.registeredPhoneNumber(registerPhoneAction.phoneNumber());
+        return SessionHandler.instance().sendToSessions(registeredSessions, registeredPhoneNumber);
     }
 }

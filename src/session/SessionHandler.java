@@ -72,7 +72,7 @@ public class SessionHandler {
         return failures.head();
     }
 
-    public boolean verifiedSession(Session session) {
-        return _registeredSessions.get(session.getId()).isDefined();
+    public boolean verifiedSession(String sessionId) {
+        return _registeredSessions.get(sessionId).isDefined();
     }
 }
