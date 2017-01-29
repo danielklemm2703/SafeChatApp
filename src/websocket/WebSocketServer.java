@@ -19,21 +19,9 @@ import util.JsonUtil;
 @ServerEndpoint("/actions")
 public class WebSocketServer {
 
-    @OnOpen
-    public void open(Session session) {
-        SessionHandler.instance().addSession(session);
-    }
-
     @OnClose
     public void close(Session session) {
         SessionHandler.instance().removeSession(session);
-    }
-
-    @OnError
-    public void onError(Throwable error) {
-        System.out.println("error");
-        Logger.getLogger(WebSocketServer.class.getName())
-                .log(Level.SEVERE, null, error);
     }
 
     @OnMessage
@@ -47,5 +35,17 @@ public class WebSocketServer {
 
         System.err.println("Try to find suitable action");
         WebSocketHandler.handle(json, session);
+    }
+
+    @OnError
+    public void onError(Throwable error) {
+        System.out.println("error");
+        Logger.getLogger(WebSocketServer.class.getName())
+                .log(Level.SEVERE, null, error);
+    }
+
+    @OnOpen
+    public void open(Session session) {
+        SessionHandler.instance().addSession(session);
     }
 }
