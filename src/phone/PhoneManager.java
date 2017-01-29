@@ -1,20 +1,16 @@
 package phone;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javaslang.collection.HashMap;
+import javaslang.collection.HashSet;
 import javaslang.control.Option;
 
 import javax.websocket.Session;
 
-import com.google.common.collect.Sets;
-
 public class PhoneManager {
 
-    private final HashMap<String, HashSet<Session>> _phoneMap;
     private static final AtomicReference<PhoneManager> _singletonHolder = new AtomicReference<PhoneManager>();
-
     public static final PhoneManager instance() {
         if (_singletonHolder.get() == null) {
             _singletonHolder.set(new PhoneManager());
@@ -22,19 +18,30 @@ public class PhoneManager {
         return _singletonHolder.get();
     }
 
-    public void registerPhoneNumber(String phoneNumber, Session session) {
-        if (!_phoneMap.keySet().contains(phoneNumber)) {
-            HashSet<Session> sessions = Sets.newHashSet(session);
-            _phoneMap.put(phoneNumber, sessions);
-        } else {
-            _phoneMap.get(phoneNumber).add(session);
-        }
-        Option<Integer> of = Option.of(4);
-        System.err.println("Registered for number: " + phoneNumber);
-        System.err.println("Number of sessions: " + _phoneMap.get(phoneNumber).size());
-    }
+    private HashMap<String, HashSet<Session>> _phoneMap;
 
     private PhoneManager() {
-        _phoneMap = new HashMap<String, HashSet<Session>>();
+        _phoneMap = HashMap.<String, HashSet<Session>> empty();
+    }
+
+    /**
+     * registers a number to a session, returns all sessions that belong to a given number
+     * 
+     * @param phoneNumber
+     * @param session
+     * @return a set of registered sessions to a single number
+     */
+    public HashSet<Session> registerPhoneNumber(String phoneNumber, Session session) {
+        // TODO what happens if the incoming session already has a phone number registered?
+        if (!_phoneMap.keySet().contains(phoneNumber)) {
+            HashSet<Session> sessions = HashSet.of(session);
+            _phoneMap = _phoneMap.put(phoneNumber, sessions);
+        } else {
+            HashSet<Session> sessions = _phoneMap.get(phoneNumber).get().add(session);
+            _phoneMap = _phoneMap.put(phoneNumber, sessions);
+        }
+        return _phoneMap.get(phoneNumber)
+                .orElse(Option.of(HashSet.<Session> empty()))
+                .get();
     }
 }

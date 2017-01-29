@@ -3,24 +3,31 @@ var socket = new WebSocket("ws://localhost:8080/SafeChatApp/actions");
 socket.onmessage = onMessage;
 
 function onMessage(event) {
-	var device = JSON.parse(event.data);
-	if (device.action === "add") {
-		printDeviceElement(device);
+	var json = JSON.parse(event.data);
+	if (json.action === "error") {
+		printError(json.message);
 	}
-	if (device.action === "remove") {
-		document.getElementById(device.id).remove();
+	if (json.action === "registeredPhoneNumber") {
+		updateStatus(json.phoneNumber);
+	}
+
+	if (json.action === "add") {
+		printDeviceElement(json);
+	}
+	if (json.action === "remove") {
+		document.getElementById(json.id).remove();
 		// device.parentNode.removeChild(device);
 	}
-	if (device.action === "toggle") {
-		var node = document.getElementById(device.id);
+	if (json.action === "toggle") {
+		var node = document.getElementById(json.id);
 		var statusText = node.children[2];
-		if (device.status === "On") {
-			statusText.innerHTML = "Status: " + device.status
-					+ " (<a href=\"#\" OnClick=toggleDevice(" + device.id
+		if (json.status === "On") {
+			statusText.innerHTML = "Status: " + json.status
+					+ " (<a href=\"#\" OnClick=toggleDevice(" + json.id
 					+ ")>Turn off</a>)";
-		} else if (device.status === "Off") {
-			statusText.innerHTML = "Status: " + device.status
-					+ " (<a href=\"#\" OnClick=toggleDevice(" + device.id
+		} else if (json.status === "Off") {
+			statusText.innerHTML = "Status: " + json.status
+					+ " (<a href=\"#\" OnClick=toggleDevice(" + json.id
 					+ ")>Turn on</a>)";
 		}
 	}
@@ -52,6 +59,10 @@ function toggleDevice(element) {
 		id : id
 	};
 	socket.send(JSON.stringify(DeviceAction));
+}
+
+function printError(message) {
+	alert(message);
 }
 
 function printDeviceElement(device) {
@@ -104,6 +115,12 @@ function registerPhone() {
 		document.getElementById('registerStatus').innerHTML = "Processing ...";
 		registerPhoneOnServer(phone);
 	}
+}
+
+function updateStatus(phoneNumber) {
+	document.getElementById('registerPhoneForm').style.visibility = 'visible';
+	var phone = document.getElementById('phoneNumberText').value;
+	document.getElementById('registerStatus').innerHTML = "Successfully registered number "+phoneNumber;
 }
 
 function registerPhoneOnServer(phone) {
