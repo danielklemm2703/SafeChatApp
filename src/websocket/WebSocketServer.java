@@ -1,8 +1,5 @@
 package websocket;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.json.JsonObject;
 import javax.websocket.OnClose;
@@ -39,9 +36,7 @@ public class WebSocketServer {
 
     @OnError
     public void onError(Throwable error) {
-        System.out.println("error");
-        Logger.getLogger(WebSocketServer.class.getName())
-                .log(Level.SEVERE, null, error);
+        error.printStackTrace();
     }
 
     @OnOpen
