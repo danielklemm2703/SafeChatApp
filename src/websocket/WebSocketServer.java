@@ -23,6 +23,7 @@ public class WebSocketServer {
 
     @OnMessage
     public void handleMessage(String json, Session session) {
+        // verification
         if (!SessionHandler.instance().verifiedSession(session)) {
             JsonObject error = JsonUtil.error("No verified Session");
             SessionHandler.instance().sendToSession(session, error);
@@ -30,6 +31,7 @@ public class WebSocketServer {
         }
         System.err.println("Verified Session: " + session.getId());
 
+        // business logic execution
         System.err.println("Try to find suitable action");
         WebSocketHandler.handle(json, session);
     }

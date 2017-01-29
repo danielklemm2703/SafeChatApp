@@ -18,6 +18,7 @@ import util.Unit;
 public final class WebSocketHandler {
 
     public static void handle(String json, Session session) {
+        // TODO better Json validation
         try (JsonReader reader = Json.createReader(new StringReader(json))) {
             JsonObject jsonMessage = reader.readObject();
 
