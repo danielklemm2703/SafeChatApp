@@ -18,6 +18,9 @@ public class PhoneManager {
         return _singletonHolder.get();
     }
 
+    /**
+     * maps phone number to session id's
+     */
     private HashMap<String, HashSet<Session>> _phoneMap;
 
     private PhoneManager() {

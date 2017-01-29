@@ -35,6 +35,11 @@ public final class WebSocketHandler {
                 // TODO try to recover
                 Try<Unit> sendToSessions = SessionHandler.instance().sendToSessions(registeredSessions, registeredPhoneNumber);
             }
+
+            if ("sendMessageToNumber".equals(jsonMessage.getString("action"))) {
+                // business operation
+                System.err.println("Try to send message to number");
+            }
         }
     }
 }

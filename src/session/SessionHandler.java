@@ -36,6 +36,7 @@ public class SessionHandler {
 
     public void removeSession(Session session) {
         System.out.println("removeSession: " + session.getId());
+        // TODO must notify phone manager
         _registeredSessions = _registeredSessions.remove(session.getId());
     }
 
@@ -44,8 +45,15 @@ public class SessionHandler {
             session.getBasicRemote().sendText(json.toString());
             System.err.println("Successfully sent to session " + session.getId());
             return Try.success(Unit.VALUE);
-        } catch (IOException ex) {
-            return Try.failure(ex);
+        } catch (IllegalStateException e1) {
+            if (e1.getMessage().startsWith("The connection has been closed")) {
+                System.err.println("Removed this outdated session");
+                removeSession(session);
+                return Try.success(Unit.VALUE);
+            }
+            return Try.failure(e1);
+        } catch (IOException e2) {
+            return Try.failure(e2);
         }
     }
 
@@ -54,7 +62,7 @@ public class SessionHandler {
         HashSet<Try<Unit>> failures = registeredSessions
                 .map(t -> sendToSession(t, json))
                 .filter(t -> t.isFailure());
-        if(failures.isEmpty()){
+        if (failures.isEmpty()) {
             return Try.success(Unit.VALUE);
         }
         return failures.head();

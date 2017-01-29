@@ -40,83 +40,15 @@ p {
     visibility : hidden;
 }
 
+#chatboxForm {
+    visibility : hidden;
+}
+
+#sendStatus {
+    visibility : hidden;
+}
+
 #content {
     margin: auto;
     width: 960px;
-}
-
-.device {
-    width: 180px;
-    height: 110px;
-    margin: 10px;
-    padding: 16px;
-    color: #fff;
-    vertical-align: top;
-    border-radius: 8px;
-    -moz-border-radius: 8px;
-    -webkit-border-radius: 8px;
-    display: inline-block;
-}
-
-.device.off {
-    background-color: #c8cccf;
-}
-
-.device span {
-    display: block;
-}
-
-.deviceName {
-    text-align: center;
-    font-weight: bold;
-    margin-bottom: 12px;
-}
-
-.removeDevice {
-    margin-top: 12px;
-    text-align: center;
-}
-
-.device.Appliance {
-    background-color: #5eb85e;
-}
-
-.device.Appliance a:hover {
-    color: #a1ed82;
-}
-
-.device.Electronics {   
-    background-color: #0f90d1;
-}
-
-.device.Electronics a:hover {
-    color: #4badd1;
-}
-
-.device.Lights {
-    background-color: #c2a00c;
-}
-
-.device.Lights a:hover {
-    color: #fad232;
-}
-
-.device.Other {
-    background-color: #db524d;
-}
-
-.device.Other a:hover {
-    color: #ff907d;
-}
-
-.device a {
-    text-decoration: none;
-}
-
-.device a:visited, a:active, a:hover {
-    color: #fff;
-}
-
-.device a:hover {
-    text-decoration: underline;
 }

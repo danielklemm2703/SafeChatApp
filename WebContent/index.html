@@ -8,7 +8,7 @@
 </head>
 <body>
 	<div id="wrapper">
-		<h1>Safe Chat App</h1>
+		<h1>Safe Chat Application</h1>
 		<p>Please Enter your phone Number:</p>
 		<textarea id="phoneNumberText" rows="1" cols="0"></textarea>
 		<br /> <br />
@@ -17,13 +17,23 @@
 				<a href="#" OnClick="registerPhone()">Register my number</a>
 			</div>
 			<form id="registerPhoneForm">
-				<br /> 
-				<label id="registerStatus">Registering...</label>
+				<br /> <label id="registerStatus">Registering...</label>
 			</form>
 		</div>
 		<br />
-		<h3>Currently connected devices:</h3>
-		<div id="content"></div>
+		<form id="chatboxForm">
+			<textarea id="messagesArea" rows="10" cols="50"></textarea>
+			<br /> <br /> <label> Number: <input id="numberToSend"
+				type="text" value="">
+			</label> <br /> <label>Message: <input id="message" type="text"
+				value="">
+			</label> <br /> <br />
+			<div class="button">
+				<a href="#" OnClick="sendMessageToNumber()">Send message</a>
+			</div>
+			<br /> <br />
+			<label id="sendStatus">Sending...</label>
+		</form>
 	</div>
 </body>
 </html>
