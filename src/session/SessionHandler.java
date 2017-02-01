@@ -11,6 +11,7 @@ import javaslang.control.Try;
 import javax.websocket.Session;
 
 import util.Unit;
+import websocket.Response;
 import action.response.ResponseAction;
 
 import com.google.gson.GsonBuilder;
@@ -42,7 +43,7 @@ public class SessionHandler {
         _registeredSessions = _registeredSessions.remove(sessionId);
     }
 
-    public Try<Unit> sendToSession(String sessionId, ResponseAction action) {
+    private Try<Unit> sendToSession(String sessionId, ResponseAction action) {
         try {
             Option<Session> registeredSession = _registeredSessions.get(sessionId);
             if (registeredSession.isDefined()) {
@@ -60,22 +61,23 @@ public class SessionHandler {
             }
             return Try.failure(e1);
         } catch (IOException e2) {
+            removeSession(sessionId);
             return Try.failure(e2);
         }
     }
 
-    public Try<Unit> sendToSessions(HashSet<String> registeredSessions, ResponseAction action) {
-        System.err.println("Try sending to multiple sessions (#" + registeredSessions.size() + ")");
-        HashSet<Try<Unit>> failures = registeredSessions
-                .map(t -> sendToSession(t, action))
+    public Try<Unit> verifiedSession(String sessionId) {
+        return _registeredSessions.get(sessionId).isDefined() ? Try.success(Unit.VALUE) : Try.failure(new IllegalStateException("no verified Session"));
+    }
+
+    public Try<Unit> sendResponse(Response response) {
+        System.err.println("Try sending to multiple sessions (#" + response.sessionsToNotify().size() + ")");
+        HashSet<Try<Unit>> failures = response.sessionsToNotify()
+                .map(t -> sendToSession(t, response.responseAction()))
                 .filter(t -> t.isFailure());
         if (failures.isEmpty()) {
             return Try.success(Unit.VALUE);
         }
         return failures.head();
-    }
-
-    public boolean verifiedSession(String sessionId) {
-        return _registeredSessions.get(sessionId).isDefined();
     }
 }

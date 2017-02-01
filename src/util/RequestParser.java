@@ -14,6 +14,7 @@ import action.request.RegisterPhoneNumber;
 import action.request.RequestAction;
 import action.request.RequestActions;
 import action.request.SendMessage;
+import action.request.UnknownRequestAction;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -33,7 +34,7 @@ public class RequestParser {
                 SendMessage sendMessage = builder.fromJson(jsonString, ImmutableSendMessage.class).withSessionId(sessionId);
                 return Try.success(sendMessage);
             }
-            throw new UnsupportedOperationException("No action for " + action + " defined");
+            return Try.success(UnknownRequestAction.builder().action(action).build());
         } catch (Exception e) {
             return Try.failure(e);
         }

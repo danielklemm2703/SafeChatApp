@@ -1,6 +1,8 @@
 package websocket;
 
-import javaslang.control.Try;
+import java.util.function.Consumer;
+
+import javaslang.collection.HashSet;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.websocket.OnClose;
@@ -12,13 +14,22 @@ import javax.websocket.server.ServerEndpoint;
 
 import session.SessionHandler;
 import util.RequestParser;
-import util.Unit;
-import action.request.RequestAction;
-import action.response.Failure;
 
 @ApplicationScoped
 @ServerEndpoint("/actions")
 public class WebSocketServer {
+
+    private static final Consumer<Throwable> sendError(Session session) {
+        return new Consumer<Throwable>() {
+            @Override
+            public void accept(Throwable t) {
+                Response response = Response.failure(t.getMessage(), HashSet.of(session.getId()));
+                SessionHandler.instance().sendResponse(response);
+                System.err.println("error sending response, reason: " + t.getMessage());
+                t.getCause().printStackTrace();
+            }
+        };
+    }
 
     @OnClose
     public void close(Session session) {
@@ -27,30 +38,12 @@ public class WebSocketServer {
 
     @OnMessage
     public void handleMessage(String json, Session session) {
-        // verification
-        if (!SessionHandler.instance().verifiedSession(session.getId())) {
-            Failure error = Failure.builder().message("No verified Session").build();
-            SessionHandler.instance().sendToSession(session.getId(), error);
-            System.err.println("Could not verify Session: " + session.getId());
-        }
-        System.err.println("Verified Session: " + session.getId());
-
-        // parsing
-        System.err.println("Try to parse action");
-        Try<? extends RequestAction> action = RequestParser.parseAction(json, session.getId());
-        if (action.isFailure()) {
-            Failure error = Failure.builder().message("Could not parse action").build();
-            SessionHandler.instance().sendToSession(session.getId(), error);
-            System.err.println("Could not parse action: " + json);
-        }
-
-        // business logic execution
-        Try<Unit> handle = WebSocketHandler.handleRequest(action.get());
-        if (handle.isFailure()) {
-            Failure error = Failure.builder().message("Could not execute action").build();
-            SessionHandler.instance().sendToSession(session.getId(), error);
-            System.err.println("Could not execute action: " + action.get());
-        }
+        SessionHandler.instance().verifiedSession(session.getId())
+                .flatMap(t -> RequestParser.parseAction(json, session.getId()))
+                .flatMap(action -> WebSocketHandler.handleRequest(action))
+                .flatMap(response -> SessionHandler.instance().sendResponse(response))
+                .onSuccess(t -> System.err.println("successfully sent response"))
+                .onFailure(sendError(session));
     }
 
     @OnError
