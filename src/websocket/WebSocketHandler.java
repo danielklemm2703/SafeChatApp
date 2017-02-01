@@ -2,27 +2,23 @@ package websocket;
 
 import javaslang.collection.HashSet;
 import javaslang.control.Try;
-
-import javax.json.JsonObject;
-
 import phone.PhoneManager;
 import session.SessionHandler;
-import util.JsonUtil;
 import util.Unit;
-import action.Action;
-import action.RegisterPhoneNumber;
-import action.SendMessage;
+import action.request.RegisterPhoneNumber;
+import action.request.RequestAction;
+import action.request.SendMessage;
+import action.response.ImmutableRegisteredPhoneNumber;
+import action.response.RegisteredPhoneNumber;
 
 public final class WebSocketHandler {
 
-    public static Try<Unit> handle(Action action) {
+    public static Try<Unit> handleRequest(RequestAction action) {
         if (action instanceof RegisterPhoneNumber) {
-            RegisterPhoneNumber registerPhoneAction = (RegisterPhoneNumber) action;
-            return registerPhoneNumber(registerPhoneAction);
+            return registerPhoneNumber((RegisterPhoneNumber) action);
         }
         if (action instanceof SendMessage) {
-            SendMessage sendMessageAction = (SendMessage) action;
-            return sendMessage(sendMessageAction);
+            return sendMessage((SendMessage) action);
         }
         return Try.failure(new UnsupportedOperationException("Could not find action to execute"));
     }
@@ -35,12 +31,12 @@ public final class WebSocketHandler {
 
     private static Try<Unit> registerPhoneNumber(RegisterPhoneNumber registerPhoneAction) {
         System.err.println("Try to register phone number");
-        HashSet<String> registeredSessions = PhoneManager.instance().registerPhoneNumber(registerPhoneAction.phoneNumber(), registerPhoneAction.sessionId());
+        HashSet<String> registeredSessions = PhoneManager.instance().registerPhoneNumber(registerPhoneAction.phoneNumber(), registerPhoneAction.sessionId().get());
         System.err.println("Registered phone number: " + registerPhoneAction.phoneNumber());
         System.err.println("It belongs currently to " + registeredSessions.size() + " session(s)");
 
         // send response
-        JsonObject registeredPhoneNumber = JsonUtil.registeredPhoneNumber(registerPhoneAction.phoneNumber());
-        return SessionHandler.instance().sendToSessions(registeredSessions, registeredPhoneNumber);
+        ImmutableRegisteredPhoneNumber responseAction = RegisteredPhoneNumber.builder().phoneNumber(registerPhoneAction.phoneNumber()).build();
+        return SessionHandler.instance().sendToSessions(registeredSessions, responseAction);
     }
 }

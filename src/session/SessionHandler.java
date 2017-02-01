@@ -8,10 +8,12 @@ import javaslang.collection.HashSet;
 import javaslang.control.Option;
 import javaslang.control.Try;
 
-import javax.json.JsonObject;
 import javax.websocket.Session;
 
 import util.Unit;
+import action.response.ResponseAction;
+
+import com.google.gson.GsonBuilder;
 
 public class SessionHandler {
 
@@ -40,10 +42,11 @@ public class SessionHandler {
         _registeredSessions = _registeredSessions.remove(sessionId);
     }
 
-    public Try<Unit> sendToSession(String sessionId, JsonObject json) {
+    public Try<Unit> sendToSession(String sessionId, ResponseAction action) {
         try {
             Option<Session> registeredSession = _registeredSessions.get(sessionId);
             if (registeredSession.isDefined()) {
+                String json = new GsonBuilder().create().toJson(action);
                 registeredSession.get().getBasicRemote().sendText(json.toString());
                 System.err.println("Successfully sent to session " + sessionId);
                 return Try.success(Unit.VALUE);
@@ -61,10 +64,10 @@ public class SessionHandler {
         }
     }
 
-    public Try<Unit> sendToSessions(HashSet<String> registeredSessions, JsonObject json) {
+    public Try<Unit> sendToSessions(HashSet<String> registeredSessions, ResponseAction action) {
         System.err.println("Try sending to multiple sessions (#" + registeredSessions.size() + ")");
         HashSet<Try<Unit>> failures = registeredSessions
-                .map(t -> sendToSession(t, json))
+                .map(t -> sendToSession(t, action))
                 .filter(t -> t.isFailure());
         if (failures.isEmpty()) {
             return Try.success(Unit.VALUE);

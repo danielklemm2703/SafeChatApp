@@ -3,7 +3,6 @@ package websocket;
 import javaslang.control.Try;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.json.JsonObject;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
@@ -12,13 +11,10 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import session.SessionHandler;
-import util.JsonUtil;
-import util.Parser;
+import util.RequestParser;
 import util.Unit;
-import action.Action;
-import action.ImmutableFoobarValue;
-
-import com.google.gson.GsonBuilder;
+import action.request.RequestAction;
+import action.response.Failure;
 
 @ApplicationScoped
 @ServerEndpoint("/actions")
@@ -33,31 +29,25 @@ public class WebSocketServer {
     public void handleMessage(String json, Session session) {
         // verification
         if (!SessionHandler.instance().verifiedSession(session.getId())) {
-            JsonObject error = JsonUtil.error("No verified Session");
+            Failure error = Failure.builder().message("No verified Session").build();
             SessionHandler.instance().sendToSession(session.getId(), error);
             System.err.println("Could not verify Session: " + session.getId());
         }
         System.err.println("Verified Session: " + session.getId());
 
-        ImmutableFoobarValue build = ImmutableFoobarValue.builder().foo(3).bar("bar").build();
-        String json2 = new GsonBuilder().create().toJson(build);
-        System.err.println(json2);
-        ImmutableFoobarValue fromJson = new GsonBuilder().create().fromJson(json2, ImmutableFoobarValue.class);
-        System.err.println(fromJson.toString());
-
         // parsing
         System.err.println("Try to parse action");
-        Try<? extends Action> action = Parser.parseAction(json, session.getId());
+        Try<? extends RequestAction> action = RequestParser.parseAction(json, session.getId());
         if (action.isFailure()) {
-            JsonObject error = JsonUtil.error("Could not parse action");
+            Failure error = Failure.builder().message("Could not parse action").build();
             SessionHandler.instance().sendToSession(session.getId(), error);
             System.err.println("Could not parse action: " + json);
         }
 
         // business logic execution
-        Try<Unit> handle = WebSocketHandler.handle(action.get());
+        Try<Unit> handle = WebSocketHandler.handleRequest(action.get());
         if (handle.isFailure()) {
-            JsonObject error = JsonUtil.error("Could not execute action");
+            Failure error = Failure.builder().message("Could not execute action").build();
             SessionHandler.instance().sendToSession(session.getId(), error);
             System.err.println("Could not execute action: " + action.get());
         }
