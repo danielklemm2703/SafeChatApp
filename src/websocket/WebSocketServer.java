@@ -33,6 +33,7 @@ public class WebSocketServer {
 
     @OnClose
     public void close(Session session) {
+        // TODO should this trigger an update in the phoneManager?
         SessionHandler.instance().removeSession(session.getId());
     }
 

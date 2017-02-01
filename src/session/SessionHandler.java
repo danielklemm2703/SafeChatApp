@@ -33,14 +33,42 @@ public class SessionHandler {
         _registeredSessions = HashMap.<String, Session> empty();
     }
 
+    /**
+     * Adds a session to the list of known sessions
+     * 
+     * @param session
+     */
     public void addSession(Session session) {
         System.out.println("addSession: " + session.getId());
         _registeredSessions = _registeredSessions.put(session.getId(), session);
     }
 
+    /**
+     * Removes a session by its id from the known sessions
+     * 
+     * @param sessionId
+     */
     public void removeSession(String sessionId) {
         System.out.println("removeSession: " + sessionId);
         _registeredSessions = _registeredSessions.remove(sessionId);
+    }
+
+    /**
+     * Sends a response object to all given sessions
+     * 
+     * @param response
+     * @return Try.success if all sessions are available and could be reached, otherwise returns the
+     *         first Try.failure that occurred
+     */
+    public Try<Unit> sendResponse(Response response) {
+        System.err.println("Try sending to multiple sessions (#" + response.sessionsToNotify().size() + ")");
+        HashSet<Try<Unit>> failures = response.sessionsToNotify()
+                .map(t -> sendToSession(t, response.responseAction()))
+                .filter(t -> t.isFailure());
+        if (failures.isEmpty()) {
+            return Try.success(Unit.VALUE);
+        }
+        return failures.head();
     }
 
     private Try<Unit> sendToSession(String sessionId, ResponseAction action) {
@@ -66,20 +94,15 @@ public class SessionHandler {
         }
     }
 
+    /**
+     * Checks if a certain session is known by the given sessionId
+     * 
+     * @param sessionId
+     * @return Try.success, if the session is known, Try.failure else
+     */
     public Try<Unit> verifiedSession(String sessionId) {
         return _registeredSessions.get(sessionId).isDefined() ?
                 Try.success(Unit.VALUE) :
                 Try.failure(new IllegalStateException("no verified Session"));
-    }
-
-    public Try<Unit> sendResponse(Response response) {
-        System.err.println("Try sending to multiple sessions (#" + response.sessionsToNotify().size() + ")");
-        HashSet<Try<Unit>> failures = response.sessionsToNotify()
-                .map(t -> sendToSession(t, response.responseAction()))
-                .filter(t -> t.isFailure());
-        if (failures.isEmpty()) {
-            return Try.success(Unit.VALUE);
-        }
-        return failures.head();
     }
 }

@@ -14,6 +14,12 @@ import action.response.ResponseAction;
 
 public final class WebSocketHandler {
 
+    /**
+     * Executes the business logic according to the given action
+     * 
+     * @param action
+     * @return response of the execution
+     */
     public static Try<Response> handleRequest(RequestAction action) {
         if (action instanceof RegisterPhoneNumber) {
             return registerPhoneNumber((RegisterPhoneNumber) action);
