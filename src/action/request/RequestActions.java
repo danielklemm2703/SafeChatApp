@@ -1,11 +1,9 @@
 package action.request;
 
-
 public enum RequestActions {
-    
+
     REGISTER_PHONENUMBER("registerPhoneNumber"),
-    SEND_MESSAGE("sendMessageToNumber"),
-    UNKNOWN("unknown");
+    SEND_MESSAGE("sendMessageToNumber");
 
     public String _value;
 

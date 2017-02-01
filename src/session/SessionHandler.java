@@ -67,7 +67,9 @@ public class SessionHandler {
     }
 
     public Try<Unit> verifiedSession(String sessionId) {
-        return _registeredSessions.get(sessionId).isDefined() ? Try.success(Unit.VALUE) : Try.failure(new IllegalStateException("no verified Session"));
+        return _registeredSessions.get(sessionId).isDefined() ?
+                Try.success(Unit.VALUE) :
+                Try.failure(new IllegalStateException("no verified Session"));
     }
 
     public Try<Unit> sendResponse(Response response) {
