@@ -16,6 +16,9 @@ import util.JsonUtil;
 import util.Parser;
 import util.Unit;
 import action.Action;
+import action.ImmutableFoobarValue;
+
+import com.google.gson.GsonBuilder;
 
 @ApplicationScoped
 @ServerEndpoint("/actions")
@@ -35,6 +38,12 @@ public class WebSocketServer {
             System.err.println("Could not verify Session: " + session.getId());
         }
         System.err.println("Verified Session: " + session.getId());
+
+        ImmutableFoobarValue build = ImmutableFoobarValue.builder().foo(3).bar("bar").build();
+        String json2 = new GsonBuilder().create().toJson(build);
+        System.err.println(json2);
+        ImmutableFoobarValue fromJson = new GsonBuilder().create().fromJson(json2, ImmutableFoobarValue.class);
+        System.err.println(fromJson.toString());
 
         // parsing
         System.err.println("Try to parse action");
