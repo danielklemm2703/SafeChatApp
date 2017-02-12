@@ -22,8 +22,8 @@ public class Response {
         return _sessions;
     }
 
-    public static Response of(ResponseAction responseAction, HashSet<String> sessionsToNotify) {
-        return new Response(responseAction, sessionsToNotify);
+    public static Response of(ResponseAction responseAction, HashSet<String> sessionIdsToNotify) {
+        return new Response(responseAction, sessionIdsToNotify);
     }
 
     public static Response failure(String errorMessage, HashSet<String> sessionsToNotify) {

@@ -44,4 +44,15 @@ public class PhoneManager {
                 .orElse(Option.of(HashSet.<String> empty()))
                 .get();
     }
+
+    /**
+     * returns all registered sessionIds belonging to a given phone number or an empty hash set if
+     * either the phone number is not registered or has no sessionId
+     * 
+     * @param phoneNumber
+     * @return all registered sessionIds belonging to a given phone number
+     */
+    public HashSet<String> sessionIdsOf(String phoneNumber) {
+        return _phoneMap.get(phoneNumber).getOrElse(HashSet.<String> empty());
+    }
 }

@@ -12,6 +12,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
+import phone.PhoneManager;
 import session.SessionHandler;
 import util.RequestParser;
 
@@ -19,12 +20,14 @@ import util.RequestParser;
 @ServerEndpoint("/actions")
 public class WebSocketServer {
 
-    private static final Consumer<Throwable> sendError(Session session) {
+    private SessionHandler _sessionHandler = SessionHandler.instance();
+
+    private static final Consumer<Throwable> sendError(Session session, SessionHandler sessionHandler) {
         return new Consumer<Throwable>() {
             @Override
             public void accept(Throwable t) {
                 Response response = Response.failure(t.getMessage(), HashSet.of(session.getId()));
-                SessionHandler.instance().sendResponse(response);
+                sessionHandler.sendResponse(response);
                 System.err.println("error sending response, reason: " + t.getMessage());
                 t.getCause().printStackTrace();
             }
@@ -33,18 +36,19 @@ public class WebSocketServer {
 
     @OnClose
     public void close(Session session) {
-        // TODO should this trigger an update in the phoneManager?
-        SessionHandler.instance().removeSession(session.getId());
+        // TODO this should trigger an update in the phoneManager to avoid session not found
+        // failures
+        _sessionHandler.removeSession(session.getId());
     }
 
     @OnMessage
     public void handleMessage(String json, Session session) {
-        SessionHandler.instance().verifiedSession(session.getId())
+        _sessionHandler.verifiedSession(session.getId())
                 .flatMap(t -> RequestParser.parseAction(json, session.getId()))
-                .flatMap(action -> WebSocketHandler.handleRequest(action))
-                .flatMap(response -> SessionHandler.instance().sendResponse(response))
+                .flatMap(action -> WebSocketHandler.handleRequest(action, PhoneManager.instance()))
+                .flatMap(response -> _sessionHandler.sendResponse(response))
                 .onSuccess(t -> System.err.println("successfully sent response"))
-                .onFailure(sendError(session));
+                .onFailure(sendError(session, _sessionHandler));
     }
 
     @OnError
@@ -54,6 +58,6 @@ public class WebSocketServer {
 
     @OnOpen
     public void open(Session session) {
-        SessionHandler.instance().addSession(session);
+        _sessionHandler.addSession(session);
     }
 }

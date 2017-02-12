@@ -2,6 +2,8 @@ window.onload = init;
 var socket = new WebSocket("ws://localhost:8080/SafeChatApp/actions");
 socket.onmessage = onMessage;
 
+var myPhoneNumber = "";
+
 function onMessage(event) {
 	var json = JSON.parse(event.data);
 	if (json.action === "error") {
@@ -9,6 +11,9 @@ function onMessage(event) {
 	}
 	if (json.action === "registeredPhoneNumber") {
 		updateStatus(json.phoneNumber);
+	}
+	if (json.action === "sentMessage") {
+		updateTextBox(json);
 	}
 }
 
@@ -33,6 +38,17 @@ function updateStatus(phoneNumber) {
 	document.getElementById('registerStatus').innerHTML = "Successfully registered number "
 			+ phoneNumber;
 	document.getElementById('chatboxForm').style.visibility = 'visible';
+	myPhoneNumber = phoneNumber;
+}
+
+function updateTextBox(json) {
+	if(json.senderNumber == myPhoneNumber){
+		document.getElementById("messagesArea").value += "you: "+json.message+"\n";
+		document.getElementById('sendStatus').innerHTML = "Message successfully sent.";
+	} else {
+		document.getElementById("messagesArea").value += json.senderNumber+": "+json.message+"\n";
+		document.getElementById('sendStatus').innerHTML = "Message successfully received.";
+	}
 }
 
 function registerPhoneOnServer(phone) {
@@ -48,19 +64,19 @@ function sendMessageToNumber() {
 	var receiverNumber = document.getElementById('numberToSend').value;
 	var message = document.getElementById('message').value;
 	document.getElementById('sendStatus').style.visibility = 'visible';
-	if (receiverNumber == "" || message == "" || senderNumber =="") {
+	if (receiverNumber == "" || message == "" || senderNumber == "") {
 		document.getElementById('sendStatus').innerHTML = "No sender, receiver or message";
 	} else {
 		document.getElementById('sendStatus').innerHTML = "Sending message...";
-		sendMessageToSocket(senderNumber,receiverNumber, message);
+		sendMessageToSocket(senderNumber, receiverNumber, message);
 	}
 }
 
-function sendMessageToSocket(senderNumber,receiverNumber, messageToSend) {
+function sendMessageToSocket(sender, receiver, messageToSend) {
 	var action = {
 		action : "sendMessageToNumber",
-		receiver: receiverNumber,
-		sender : senderNumber,
+		receiverNumber : receiver,
+		senderNumber : sender,
 		message : messageToSend
 	};
 	socket.send(JSON.stringify(action));
