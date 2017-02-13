@@ -20,6 +20,13 @@ import util.RequestParser;
 @ServerEndpoint("/actions")
 public class WebSocketServer {
 
+    // Task list:
+    // TODO 1. Fix Session null pointer Bug, when trying to reach outdated session from phone
+    // manager
+    // TODO 2. Create Test cases and reach good Coverage (80%)
+    // TODO 3. Introduce message cache
+    // TODO 4. what happens if an incoming session is already registered to a different number
+
     private SessionHandler _sessionHandler = SessionHandler.instance();
 
     private static final Consumer<Throwable> sendError(Session session, SessionHandler sessionHandler) {
