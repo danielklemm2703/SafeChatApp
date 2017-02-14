@@ -21,12 +21,12 @@ import util.RequestParser;
 public class WebSocketServer {
 
     // Task list:
-    // TODO 1. Fix Session null pointer Bug, when trying to reach outdated session from phone
-    // manager
-    // TODO 2. Create Test cases and reach good Coverage (80%)
+    // TODO 1. Create Test cases and reach good Coverage (80%)
+    // TODO 2. Improve logging
     // TODO 3. Introduce message cache
     // TODO 4. what happens if an incoming session is already registered to a different number
 
+    private PhoneManager _phoneManager = PhoneManager.instance();
     private SessionHandler _sessionHandler = SessionHandler.instance();
 
     private static final Consumer<Throwable> sendError(Session session, SessionHandler sessionHandler) {
@@ -43,16 +43,16 @@ public class WebSocketServer {
 
     @OnClose
     public void close(Session session) {
-        // TODO this should trigger an update in the phoneManager to avoid session not found
-        // failures
         _sessionHandler.removeSession(session.getId());
+        System.err.println("removing session " + session.getId() + " from phone manager");
+        _phoneManager.removeSessionId(session.getId());
     }
 
     @OnMessage
     public void handleMessage(String json, Session session) {
         _sessionHandler.verifiedSession(session.getId())
                 .flatMap(t -> RequestParser.parseAction(json, session.getId()))
-                .flatMap(action -> WebSocketHandler.handleRequest(action, PhoneManager.instance()))
+                .flatMap(action -> WebSocketHandler.handleRequest(action, _phoneManager))
                 .flatMap(response -> _sessionHandler.sendResponse(response))
                 .onSuccess(t -> System.err.println("successfully sent response"))
                 .onFailure(sendError(session, _sessionHandler));

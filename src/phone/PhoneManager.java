@@ -2,11 +2,10 @@ package phone;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import javaslang.collection.HashMap;
 import javaslang.collection.HashSet;
 import javaslang.control.Option;
 
-public class PhoneManager {
+public final class PhoneManager {
 
     private static final AtomicReference<PhoneManager> _singletonHolder = new AtomicReference<PhoneManager>();
 
@@ -20,10 +19,10 @@ public class PhoneManager {
     /**
      * maps phone number to session id's
      */
-    private HashMap<String, HashSet<String>> _phoneMap;
+    private PhoneSessionMap _registeredPhones;
 
     private PhoneManager() {
-        _phoneMap = HashMap.<String, HashSet<String>> empty();
+        _registeredPhones = PhoneSessionMap.empty();
     }
 
     /**
@@ -34,15 +33,19 @@ public class PhoneManager {
      * @return a set of registered sessionIds to a single number
      */
     public HashSet<String> registerPhoneNumber(String phoneNumber, String sessionId) {
-        // TODO what happens if the incoming session already has a phone number registered?
-        HashSet<String> sessionIds = HashSet.of(sessionId);
-        if (_phoneMap.keySet().contains(phoneNumber)) {
-            sessionIds = _phoneMap.get(phoneNumber).get().add(sessionId);
-        }
-        _phoneMap = _phoneMap.put(phoneNumber, sessionIds);
-        return _phoneMap.get(phoneNumber)
+        _registeredPhones = _registeredPhones.add(phoneNumber, sessionId);
+        return _registeredPhones.getSessions(phoneNumber)
                 .orElse(Option.of(HashSet.<String> empty()))
                 .get();
+    }
+
+    /**
+     * removes a sessionId from the list of registered sessions of a phone
+     * 
+     * @param sessionId
+     */
+    public void removeSessionId(String sessionId) {
+        _registeredPhones = _registeredPhones.remove(sessionId);
     }
 
     /**
@@ -53,6 +56,6 @@ public class PhoneManager {
      * @return all registered sessionIds belonging to a given phone number
      */
     public HashSet<String> sessionIdsOf(String phoneNumber) {
-        return _phoneMap.get(phoneNumber).getOrElse(HashSet.<String> empty());
+        return _registeredPhones.getSessions(phoneNumber).getOrElse(HashSet.<String> empty());
     }
 }
