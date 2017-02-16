@@ -12,9 +12,9 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
+import parse.RequestParser;
 import phone.PhoneManager;
 import session.SessionHandler;
-import util.RequestParser;
 
 @ApplicationScoped
 @ServerEndpoint("/actions")
