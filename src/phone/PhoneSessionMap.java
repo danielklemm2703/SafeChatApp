@@ -5,6 +5,16 @@ import javaslang.collection.HashSet;
 import javaslang.collection.Set;
 import javaslang.control.Option;
 
+/**
+ * Created as delegate of {@link PhoneManager} to hold dedicated maps for registered sessionIds and
+ * phone numbers. It should take away the complexity of handling two separate maps from
+ * {@link PhoneManager}. <br>
+ * <br>
+ * Instantiated objects of this class are immutable.
+ *
+ * @Note since this class is package private and {@link PhoneManager} uses it as secured delegate,
+ *       it is not necessary to have additional preconditions or argument checks.
+ */
 final class PhoneSessionMap {
 
     private final HashMap<String, HashSet<String>> _phoneMap;
@@ -19,7 +29,7 @@ final class PhoneSessionMap {
         return new PhoneSessionMap(HashMap.<String, HashSet<String>> empty(), HashMap.<String, String> empty());
     }
 
-    public Option<HashSet<String>> getSessions(String phoneNumber) {
+    public Option<HashSet<String>> sessionIds(String phoneNumber) {
         return _phoneMap.get(phoneNumber);
     }
 
@@ -27,6 +37,14 @@ final class PhoneSessionMap {
         return _phoneMap.keySet();
     }
 
+    /**
+     * Since this is an immutable implementation, adding a value to the {@link PhoneSessionMap} will
+     * create a new instance of it.
+     * 
+     * @param phoneNumber
+     * @param sessionId
+     * @return
+     */
     public PhoneSessionMap add(String phoneNumber, String sessionId) {
         HashSet<String> sessionIds = HashSet.of(sessionId);
         if (_phoneMap.keySet().contains(phoneNumber)) {
